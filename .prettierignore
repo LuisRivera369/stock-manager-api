@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+src/generated
+.spike
+package-lock.json
+skills-lock.json
+.agents
+docs
+*.md

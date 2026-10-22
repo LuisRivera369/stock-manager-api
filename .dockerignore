@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+.git
+.spike
+.env
+.env.*
+src/generated
+tests
+docs
+.agents
+.github
+*.md

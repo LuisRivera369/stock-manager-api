@@ -1,0 +1,27 @@
+# Dependencias y build
+node_modules/
+dist/
+coverage/
+
+# Entorno (nunca versionar secretos)
+.env
+.env.*
+!.env.example
+
+# Cliente generado por Prisma
+src/generated/
+
+# Artefactos de herramientas
+*.tsbuildinfo
+.eslintcache
+
+# Enlaces locales que recrea el instalador de skills (.agents/ si se versiona)
+.claude/
+
+# Base de datos temporal de desarrollo (Docker apagado)
+.spike/
+
+# Logs y sistema
+*.log
+.DS_Store
+Thumbs.db

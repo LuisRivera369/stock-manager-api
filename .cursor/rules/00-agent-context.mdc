@@ -1,0 +1,17 @@
+---
+description: Contexto del proyecto Stock Manager API (reglas y documentación para agentes)
+alwaysApply: true
+---
+
+Este proyecto mantiene su contexto de agente en `AGENTS.md` y `docs/context/`.
+Léelos antes de proponer o escribir código. No dupliques reglas en esta regla.
+
+Obligatorio:
+- `AGENTS.md` — reglas duras y mapa de archivos de contexto.
+- `docs/context/05-workflow.md` — protocolo de trabajo y definición de terminado.
+
+Carga bajo demanda según la tarea: `00-project`, `01-architecture`, `02-domain-and-api`,
+`03-security`, `04-conventions`, `06-decisions`.
+
+Si el PRD (`docs/PRD.md`) y el contexto se contradicen, o falta una decisión marcada como
+abierta en `06-decisions.md`, detente y pregunta en lugar de elegir.
