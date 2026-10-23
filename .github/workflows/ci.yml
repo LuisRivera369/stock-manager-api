@@ -58,6 +58,17 @@ jobs:
       - name: Formato
         run: npm run format:check
 
+      - name: Wait for PostgreSQL ready
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -U postgres -d stock_manager_test > /dev/null 2>&1; then
+              echo "PostgreSQL is ready after $i seconds"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
       - name: Tests
         run: npm test
 
