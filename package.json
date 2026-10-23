@@ -22,7 +22,6 @@
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.1",
     "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "^7.0.0",
     "bcrypt": "^6.0.0",

@@ -1,4 +1,4 @@
-import { Role } from "../../src/generated/prisma/client";
+import { Prisma, Role } from "../../src/generated/prisma/client";
 import * as productRepository from "../../src/repositories/productRepository";
 import * as productService from "../../src/services/productService";
 
@@ -14,7 +14,7 @@ function buildProduct(
     name: "Teclado",
     sku: "TECLADO-1",
     description: null,
-    price: 10.0,
+    price: new Prisma.Decimal(10),
     stock: 5,
     deletedAt: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),

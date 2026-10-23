@@ -9,9 +9,11 @@ FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV PRISMA_SKIP_GENERATE=1
-# Only generate Prisma client if DATABASE_URL is available; skip gracefully otherwise
-RUN if [ -n "$DATABASE_URL" ]; then npx prisma generate; else echo "Skipping prisma generate: DATABASE_URL not set"; fi && npm run build
+# `prisma generate` does not connect to the database, but prisma.config.ts resolves
+# DATABASE_URL with env(), which throws when the variable is missing. A placeholder
+# is enough for the build stage; the real URL is injected at runtime.
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/build"
+RUN npx prisma generate && npm run build
 
 FROM node:22-alpine AS production
 WORKDIR /app
@@ -24,7 +26,6 @@ RUN addgroup -g 1001 -S nodejs && adduser -S api -u 1001
 COPY --from=build --chown=api:nodejs /app/prisma ./prisma
 
 COPY package.json package-lock.json ./
-ENV PRISMA_SKIP_GENERATE=1
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 COPY --from=build --chown=api:nodejs /app/dist ./dist

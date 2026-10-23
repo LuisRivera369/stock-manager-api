@@ -20,6 +20,8 @@ services:
     build:
       context: .
       target: build
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-stock_manager}
     depends_on:
@@ -32,6 +34,8 @@ services:
     build:
       context: .
       target: production
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 3000

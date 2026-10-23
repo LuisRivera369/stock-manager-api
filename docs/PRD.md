@@ -16,7 +16,7 @@
 ## 2. Objetivos del Proyecto (Goals & Objectives)
 *   Construir una API altamente tipada bajo la **Arquitectura en Capas** y el **Patrón Servicio-Repositorio**.
 *   Garantizar **tipado estricto de extremo a extremo** integrando TypeScript con Zod y Prisma ORM.
-*   Lograr una **persistencia agnóstica** a través de Prisma (soporte para PostgreSQL, SQLite, MySQL y SQL Server).
+*   Ofrecer una **persistencia desacoplada del motor** mediante Prisma ORM sobre PostgreSQL, con el acceso a datos aislado en la capa de repositorios (ver D-02 y D-18).
 *   Facilitar el despliegue inmediato con un solo comando mediante **Docker Compose** (servicios de API + PostgreSQL).
 *   Implementar **seguridad defensiva** basada en JWT en cookies `HttpOnly`, cifrado de contraseñas, *Helmet* y *Rate Limiting*.
 *   Asegurar la calidad del código mediante **pruebas unitarias e de integración** automatizadas con Jest/TS-Jest y Supertest.
@@ -138,13 +138,15 @@ stock-manager-api/
 ```prisma
 // prisma/schema.prisma
 
-datasource db {
-  provider = "postgresql" // Puede alternarse a "sqlite" o "mysql" según el .env
-  url      = env("DATABASE_URL")
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+  runtime      = "nodejs"
 }
 
-generator client {
-  provider = "prisma-client-js"
+datasource db {
+  provider = "postgresql" // Unico motor soportado (ver docs/context/06-decisions.md, D-02 y D-18)
 }
 
 enum Role {
@@ -173,7 +175,7 @@ model Product {
   name        String
   sku         String          @unique
   description String?
-  price       Float
+  price       Decimal         @db.Decimal(10, 2)
   stock       Int             @default(0)
   deletedAt   DateTime?       // Soft Delete Flag
   createdAt   DateTime        @default(now())

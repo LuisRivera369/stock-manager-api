@@ -32,7 +32,7 @@ Esto significa que:
 ## Stack
 
 - Node.js 20.19+ (probado en 24) · Express 5 · TypeScript 5.9 (`strict`)
-- Prisma ORM 7 (`prisma-client`, salida CommonJS) + PostgreSQL (o SQLite via `DATABASE_PROVIDER`)
+- Prisma ORM 7 (`prisma-client`, salida CommonJS) + PostgreSQL 15 (`@prisma/adapter-pg`)
 - Zod 4 (validación y tipos inferidos)
 - bcrypt · jsonwebtoken · helmet · cors · express-rate-limit · cookie-parser
 - Jest 30 + ts-jest + Supertest
@@ -50,10 +50,11 @@ docker compose up --build
 Levanta PostgreSQL 15, aplica migraciones (`prisma migrate deploy`) y arranca la API en
 `http://localhost:3000`. Documentacion interactiva en `/api-docs`.
 
-Crea el primer administrador:
+Crea el primer administrador (y datos de ejemplo). Usa el target `migrate` porque es el que incluye
+la CLI de Prisma; la imagen de produccion no instala devDependencies:
 
 ```bash
-docker compose run --rm api npx prisma db seed
+docker compose run --rm migrate npx prisma db seed
 ```
 
 ## Arranque local
@@ -77,7 +78,7 @@ npm run dev
 | `CORS_ORIGIN` | Origen permitido con credenciales | `http://localhost:3000` |
 | `BCRYPT_ROUNDS` | Coste de bcrypt (10–12) | `10` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Solo para `prisma:seed` | — |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciales del contenedor `db` de Compose | `postgres` / `postgres` / `stock_manager` |`]
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciales del contenedor `db` de Compose | `postgres` / `postgres` / `stock_manager` |
 
 `DATABASE_URL` es una sola cadena (lo que consumen Prisma y el driver `pg`). Las credenciales del
 contenedor son variables aparte porque Postgres las necesita al inicializarse; Compose construye el
@@ -99,23 +100,9 @@ contenedor son variables aparte porque Postgres las necesita al inicializarse; C
 
 ## Motor de base de datos
 
-El proyecto está diseñado para ser agnóstico al gestor de bases de datos. Puedes cambiar entre SQLite y PostgreSQL mediante la variable de entorno `DATABASE_PROVIDER`:
-
-| Valor | Motor | DATABASE_URL ejemplo |
-| :--- | :--- | :--- |
-| `postgresql` | PostgreSQL | `postgresql://user:pass@host:5432/db` |
-| `sqlite` | SQLite | `file:./dev.db` |
-
-### Cómo cambiar de base de datos
-1. Modifica `.env` (o crea una variante distinta)
-2. Cambia `DATABASE_PROVIDER` a `sqlite` o `postgresql`
-3. Ajusta `DATABASE_URL` al formato del motor elegido
-4. Reinicia el servidor (`npm run dev`)
-
-### Nota importante
-- **SQLite**: El archivo de base de datos se crea automáticamente en la ruta indicada por `DATABASE_URL`
-- **PostgreSQL**: Asegúrate de que la base de datos existe antes de iniciar
-- Cambiar de motor requiere **reiniciar la aplicación** (la variable se lee al arranque)
+PostgreSQL es el único motor soportado. El `provider` de Prisma es estático en el schema y el
+cliente generado queda atado a él, por lo que no se cambia de motor con una variable de entorno
+(ver `docs/context/06-decisions.md`, D-02 y D-18).
 
 ## Endpoints
 
@@ -164,46 +151,8 @@ npm test
 - **Integracion**: Supertest contra la app y PostgreSQL real (`tests/integration`).
 
 La suite usa `DATABASE_URL_TEST`: `globalSetup` crea la base si no existe, aplica
-`prisma migrate deploy` y la trunca antes de empezar. No toca `DATABASE_URL`, asi que tus datos de
-desarrollo quedan intactos.
-
-## CI
-
-`.github/workflows/ci.yml` ejecuta en cada push a `main` y en cada pull request:
-`npm ci`, `typecheck`, `lint`, `format:check`, `test` contra un servicio PostgreSQL 15 y `build`.
-Un segundo job construye la imagen de producción, lo que valida el `Dockerfile` sin levantar el stack.
-
-
-```text
-src/
-├── @types/          augmentations de Express (req.user)
-├── config/          env validado, Prisma + adapter, Swagger
-├── controllers/     traduccion HTTP
-├── services/        reglas de negocio y transacciones
-├── repositories/    unico acceso a Prisma
-├── routes/          endpoints + anotaciones OpenAPI
-├── middlewares/     auth, roles, validacion, errores
-├── schemas/         Zod + tipos inferidos
-├── errors/          AppError tipado
-├── generated/       cliente de Prisma (no versionado)
-├── app.ts           Express sin listen
-└── server.ts        arranque y cierre ordenado
-```
-
-Reglas detalladas para humanos y agentes: `AGENTS.md` y `docs/context/`.
-
-## Tests
-
-```bash
-npm test
-```
-
-- **Unit**: servicios con repositorios mockeados (`tests/unit`).
-- **Integracion**: Supertest contra la app y PostgreSQL real (`tests/integration`).
-
-La suite usa `DATABASE_URL_TEST`: `globalSetup` crea la base si no existe, aplica
-`prisma migrate deploy` y la trunca antes de empezar. No toca `DATABASE_URL`, asi que tus datos de
-desarrollo quedan intactos.
+`prisma migrate deploy` y la trunca antes de empezar. Durante los tests `DATABASE_URL` se fuerza a
+la URL de test, asi que tus datos de desarrollo quedan intactos.
 
 ## CI
 

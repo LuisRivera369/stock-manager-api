@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 
@@ -39,7 +39,7 @@ model Product {
   name        String
   sku         String          @unique
   description String?
-  price       Float
+  price       Decimal         @db.Decimal(10, 2)
   stock       Int             @default(0)
   deletedAt   DateTime?
   createdAt   DateTime        @default(now())

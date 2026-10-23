@@ -14,8 +14,7 @@ async function main(): Promise<void> {
   ];
 
   // Crear/actualizar productos de prueba (upsert por SKU)
-  const createdProducts: { id: string; name: string; sku: string; price: number; stock: number }[] =
-    [];
+  const createdProducts: { id: string }[] = [];
   for (const productData of testProducts) {
     const product = await prisma.product.upsert({
       where: { sku: productData.sku },
@@ -31,9 +30,7 @@ async function main(): Promise<void> {
         stock: productData.stock,
       },
     });
-    createdProducts.push(
-      product as { id: string; name: string; sku: string; price: number; stock: number },
-    );
+    createdProducts.push({ id: product.id });
   }
 
   console.log(`${createdProducts.length} productos configurados`);

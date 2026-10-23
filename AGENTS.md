@@ -23,8 +23,9 @@ Stack fijado (no se cambia sin aprobación explícita):
 - Seguridad: `bcrypt`, `jsonwebtoken`, `cookie-parser`, `helmet`, `express-rate-limit`, `cors`
 
 **Estado:** Hitos 1-4 implementados y verificados en local (auth con JWT en cookie, productos con
-soft delete, movimientos transaccionales, Swagger, README, 46 tests en verde). Pendiente: verificar
-`docker compose up` real (el daemon de Docker estaba apagado).
+soft delete, movimientos transaccionales, Swagger, README, 49 tests en verde). `docker compose up`
+verificado con PostgreSQL 15 y migraciones automáticas. Motor único: PostgreSQL (SQLite eliminado,
+ver D-18).
 
 ---
 

@@ -31,7 +31,7 @@ mismo cambio.
 - **Spike D-16 primero:** Prisma 7 con `moduleFormat = "cjs"` + `@prisma/adapter-pg` sobre el PostgreSQL real; confirmar `prisma.config.ts`, `generate`, un `create`/`findMany` y un test de Jest antes de construir nada más.
 - Prisma inicializado: `prisma/schema.prisma` con generador `prisma-client` y salida en `src/generated/prisma`; `prisma.config.ts` con `import "dotenv/config"` y `DATABASE_URL`; los 3 modelos y 2 enums del PRD; adapter configurado en `src/config/database.ts`; primera migración aplicada y cliente generado.
 - **Aceptación:** `docker compose up` levanta API + BD; `npm run typecheck` pasa; migración aplicada sin errores; un test de Jest crea y lee un registro real usando el cliente generado.
-- **Estado (2026-10-22):** implementado y verificado en local con Prisma 7.10.1 sobre PostgreSQL 18.1: `prisma generate`, migración `init`, `typecheck`, `build`, 3 tests en verde y `GET /health` → 200 desde `dist/`. `docker compose config` valida, pero `docker compose up` no se pudo ejecutar (daemon apagado). La BD de desarrollo es un clúster temporal en `127.0.0.1:55432` dentro de `.spike/` (gitignored).
+- **Estado (2026-10-22):** implementado y verificado en local con Prisma 7.10.1 sobre PostgreSQL 15: `prisma generate`, migración `init` regenerada para Postgres, `typecheck`, `build`, 49 tests en verde y `GET /health` → 200 desde `dist/`. `docker compose up --build` levanta `db`, aplica migraciones y deja la API healthy (`GET /health` y `GET /api/products` verificados). SQLite fue eliminado (D-18): el schema fija `provider = "postgresql"`.
 
 ### Hito 2 — Esqueleto Express y autenticación
 

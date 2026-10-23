@@ -18,6 +18,12 @@ src/generated/
 # Enlaces locales que recrea el instalador de skills (.agents/ si se versiona)
 .claude/
 
+# Bases SQLite locales/de test (se regeneran con prisma migrate deploy)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
 # Base de datos temporal de desarrollo (Docker apagado)
 .spike/
 
