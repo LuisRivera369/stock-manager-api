@@ -147,6 +147,3 @@ desarrollo quedan intactos.
 `.github/workflows/ci.yml` ejecuta en cada push a `main` y en cada pull request:
 `npm ci`, `typecheck`, `lint`, `format:check`, `test` contra un servicio PostgreSQL 15 y `build`.
 Un segundo job construye la imagen de producción, lo que valida el `Dockerfile` sin levantar el stack.
-
-Requiere subir el repositorio a GitHub y hacer el primer commit; hasta entonces el workflow no se
-ejecuta.
