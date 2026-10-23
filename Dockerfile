@@ -9,8 +9,6 @@ FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Solo evita que prisma.config.ts falle al generar; no se conecta a ninguna BD
-ENV DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma"
 RUN npx prisma generate && npm run build
 
 FROM node:22-alpine AS production
