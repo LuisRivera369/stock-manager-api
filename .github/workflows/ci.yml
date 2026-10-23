@@ -59,7 +59,7 @@ jobs:
         run: npm run format:check
 
       - name: Wait for PostgreSQL
-        uses: jwilder wait-for-it-action@v1
+        uses: jwilder/wait-for-it-action@v1
         with:
           host: localhost
           port: 5432
