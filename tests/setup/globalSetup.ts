@@ -12,7 +12,7 @@ function requireTestUrl(): string {
     throw new Error(
       "DATABASE_URL_TEST es obligatoria para ejecutar los tests.\n" +
         "Define la variable en tu .env.test o pássala en la línea de comandos:\n" +
-        "  DATABASE_PROVIDER=sqlite DATABASE_URL=file:./test.db DATABASE_URL_TEST=file:./test.db npm run test"
+        "  DATABASE_PROVIDER=sqlite DATABASE_URL=file:./test.db DATABASE_URL_TEST=file:./test.db npm run test",
     );
   }
 
@@ -39,10 +39,7 @@ async function ensureDatabase(url: string): Promise<void> {
   try {
     // Extract database name from URL pathname
     const dbName = admin.pathname.replace(/^\//, "");
-    const { rows } = await pool.query(
-      "SELECT 1 FROM pg_database WHERE datname = $1",
-      [dbName]
-    );
+    const { rows } = await pool.query("SELECT 1 FROM pg_database WHERE datname = $1", [dbName]);
     if (rows.length === 0) {
       await pool.query(`CREATE DATABASE "${dbName}"`);
     }
@@ -67,7 +64,7 @@ async function truncateAll(url: string): Promise<void> {
   try {
     const client = await pool.connect();
     await client.query(
-      'TRUNCATE TABLE "stock_movements", "products", "users" RESTART IDENTITY CASCADE'
+      'TRUNCATE TABLE "stock_movements", "products", "users" RESTART IDENTITY CASCADE',
     );
   } finally {
     await pool.end();

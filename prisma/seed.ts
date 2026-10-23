@@ -14,7 +14,8 @@ async function main(): Promise<void> {
   ];
 
   // Crear/actualizar productos de prueba (upsert por SKU)
-  const createdProducts: { id: string; name: string; sku: string; price: number; stock: number }[] = [];
+  const createdProducts: { id: string; name: string; sku: string; price: number; stock: number }[] =
+    [];
   for (const productData of testProducts) {
     const product = await prisma.product.upsert({
       where: { sku: productData.sku },
@@ -30,7 +31,9 @@ async function main(): Promise<void> {
         stock: productData.stock,
       },
     });
-    createdProducts.push(product as { id: string; name: string; sku: string; price: number; stock: number });
+    createdProducts.push(
+      product as { id: string; name: string; sku: string; price: number; stock: number },
+    );
   }
 
   console.log(`${createdProducts.length} productos configurados`);
@@ -52,9 +55,27 @@ async function main(): Promise<void> {
     // Crear algunos movimientos de stock de prueba
     const adminId = admin.id;
     const testMovements = [
-      { type: "IN" as const, quantity: 5, reason: "stock inicial", productId: createdProducts[0].id, userId: adminId },
-      { type: "OUT" as const, quantity: 2, reason: "venta", productId: createdProducts[1].id, userId: adminId },
-      { type: "IN" as const, quantity: 3, reason: "reabastecimiento", productId: createdProducts[2].id, userId: adminId },
+      {
+        type: "IN" as const,
+        quantity: 5,
+        reason: "stock inicial",
+        productId: createdProducts[0].id,
+        userId: adminId,
+      },
+      {
+        type: "OUT" as const,
+        quantity: 2,
+        reason: "venta",
+        productId: createdProducts[1].id,
+        userId: adminId,
+      },
+      {
+        type: "IN" as const,
+        quantity: 3,
+        reason: "reabastecimiento",
+        productId: createdProducts[2].id,
+        userId: adminId,
+      },
     ];
 
     for (const movement of testMovements) {

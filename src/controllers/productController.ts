@@ -16,7 +16,7 @@ function presentProduct(product: Product): ProductResponse {
   // Precio: Prisma Float entrega number; si viene Decimal usar toNumber
   let price: number;
   const priceVal = product.price;
-  if (priceVal != null && typeof priceVal === 'object' && 'toNumber' in priceVal) {
+  if (priceVal != null && typeof priceVal === "object" && "toNumber" in priceVal) {
     price = (priceVal as { toNumber(): number }).toNumber();
   } else {
     price = Number(priceVal);
