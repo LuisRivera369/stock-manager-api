@@ -49,8 +49,10 @@ async function main(): Promise<void> {
       },
     });
 
-    // Crear algunos movimientos de stock de prueba
+    // Crear movimientos de ejemplo solo si el admin todavia no tiene movimientos.
+    // Asi el seed es idempotente y no duplica auditoria en cada ejecucion.
     const adminId = admin.id;
+    const existingMovements = await prisma.stockMovement.count({ where: { userId: adminId } });
     const testMovements = [
       {
         type: "IN" as const,
@@ -75,20 +77,25 @@ async function main(): Promise<void> {
       },
     ];
 
-    for (const movement of testMovements) {
-      await prisma.stockMovement.create({
-        data: {
-          type: movement.type,
-          quantity: movement.quantity,
-          reason: movement.reason,
-          productId: movement.productId,
-          userId: movement.userId,
-        },
-      });
+    if (existingMovements === 0) {
+      for (const movement of testMovements) {
+        await prisma.stockMovement.create({
+          data: {
+            type: movement.type,
+            quantity: movement.quantity,
+            reason: movement.reason,
+            productId: movement.productId,
+            userId: movement.userId,
+          },
+        });
+      }
+
+      console.log(`${testMovements.length} movimientos de stock configurados`);
+    } else {
+      console.log("El admin ya tiene movimientos: se omiten los movimientos de ejemplo");
     }
 
     console.log(`Admin asegurado: ${admin.email}`);
-    console.log(`3 movimientos de stock configurados`);
   } else {
     console.log("ADMIN_EMAIL/ADMIN_PASSWORD no definidos: solo productos de prueba configurados");
   }
