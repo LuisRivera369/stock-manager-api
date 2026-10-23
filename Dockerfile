@@ -17,7 +17,10 @@ ENV NODE_ENV=production
 
 RUN addgroup -g 1001 -S nodejs && adduser -S api -u 1001
 
-# --ignore-scripts: el cliente Prisma ya viaja compilado en dist/ y `prisma` es devDependency.
+# --ignore-scripts: evita que `prisma generate` corra en postinstall
+# Copiamos el directorio prisma desde build para que este disponible si es necesario
+COPY --from=build --chown=api:nodejs /app/prisma ./prisma
+
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
