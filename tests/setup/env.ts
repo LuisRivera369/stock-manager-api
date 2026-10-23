@@ -3,23 +3,29 @@ import "path";
 import * as fs from "fs";
 import * as path from "path";
 
-// Cargar DATABASE_URL_TEST y DATABASE_PROVIDER de .env.test si no vienen definidos
-// Esto permite que npm run test funcione automáticamente si .env.test existe
-const testEnvPath = path.resolve(".env.test");
+// CONFIGURATION PRIORITY:
+// 1. Variables de entorno del workflow (ej. GitHub Actions setea DATABASE_URL_TEST con PostgreSQL)
+// 2 .env.test solo se usa si NO hay variables de entorno (para desarrollo local con SQLite)
 
-if (fs.existsSync(testEnvPath)) {
-  const testEnvContent = fs.readFileSync(testEnvPath, "utf-8");
-  // Extract DATABASE_URL_TEST
-  const urlMatch = testEnvContent.match(/^DATABASE_URL_TEST=(.+)$/m);
-  if (urlMatch?.[1] && !process.env.DATABASE_URL_TEST) {
-    process.env.DATABASE_URL_TEST = urlMatch[1].trim();
+// Proteger las variables ya establecidas (ej. desde GitHub Actions) - NO sobrescribirlas
+const protectEnvVar = (key: string) => {
+  // Si ya está definida (por ejemplo, GitHub Actions), no la toques
+  if (process.env[key]) {
+    return;
   }
-  // Extract DATABASE_PROVIDER
-  const providerMatch = testEnvContent.match(/^DATABASE_PROVIDER=(.+)$/m);
-  if (providerMatch?.[1] && !process.env.DATABASE_PROVIDER) {
-    process.env.DATABASE_PROVIDER = providerMatch[1].trim();
+  // Solo establecer si no existe (para desarrollo local)
+  const envPath = path.resolve(".env.test");
+  if (fs.existsSync(envPath)) {
+    const testEnvContent = fs.readFileSync(envPath, "utf-8");
+    const match = testEnvContent.match(new RegExp(`^${key}=(.+)$`, "m"));
+    if (match?.[1]) {
+      process.env[key] = match[1].trim();
+    }
   }
-}
+};
+
+protectEnvVar("DATABASE_URL_TEST");
+protectEnvVar("DATABASE_PROVIDER");
 
 const testDatabaseUrl = process.env.DATABASE_URL_TEST;
 
@@ -27,7 +33,8 @@ if (!testDatabaseUrl) {
   throw new Error("DATABASE_URL_TEST es obligatoria para ejecutar los tests");
 }
 
-// Asegurarse de que DATABASE_URL esté definido para Prisma
-if (testDatabaseUrl) {
-  process.env.DATABASE_URL = testDatabaseUrl;
+// Usar la URL de TEST para DATABASE_URL principal solo si viene de .env.test
+// Si ya vino del workflow (GitHub Actions), respétala tal cual
+if (process.env.DATABASE_URL_TEST && !process.env.DATABASE_URL_TEST.startsWith("postgresql")) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
 }
