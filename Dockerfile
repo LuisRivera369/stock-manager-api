@@ -10,7 +10,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV PRISMA_SKIP_GENERATE=1
-RUN npx prisma generate && npm run build
+# Only generate Prisma client if DATABASE_URL is available; skip gracefully otherwise
+RUN if [ -n "$DATABASE_URL" ]; then npx prisma generate; else echo "Skipping prisma generate: DATABASE_URL not set"; fi && npm run build
 
 FROM node:22-alpine AS production
 WORKDIR /app
