@@ -1,6 +1,9 @@
 import "dotenv/config";
 
 import { execSync } from "node:child_process";
+import * as fs from "fs";
+import * as path from "path";
+import { Pool } from "pg";
 
 function requireTestUrl(): string {
   const url = process.env.DATABASE_URL_TEST;
@@ -27,7 +30,6 @@ async function ensureDatabase(url: string): Promise<void> {
   }
 
   // PostgreSQL: create the database if it doesn't exist
-  const { Pool } = require("pg");
   const admin = new URL(url);
   admin.pathname = "/postgres";
 
@@ -52,8 +54,6 @@ async function ensureDatabase(url: string): Promise<void> {
 async function truncateAll(url: string): Promise<void> {
   if (isSqliteUrl(url)) {
     // SQLite: just remove the old database file and let Prisma create a fresh one
-    const fs = require("fs");
-    const path = require("path");
     const dbPath = path.resolve(url.replace("file:", ""));
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
@@ -62,7 +62,6 @@ async function truncateAll(url: string): Promise<void> {
   }
 
   // PostgreSQL: truncate all tables
-  const { Pool } = require("pg");
   const pool = new Pool({ connectionString: url });
 
   try {
@@ -82,8 +81,6 @@ export default async function globalSetup(): Promise<void> {
 
   // For SQLite, remove old database file so Prisma creates a fresh one
   if (isSqliteUrl(url)) {
-    const fs = require("fs");
-    const path = require("path");
     const dbPath = path.resolve(url.replace("file:", ""));
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);

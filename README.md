@@ -1,14 +1,39 @@
 # Stock Manager API
 
-API REST de gestion de inventario con auditoria por usuario. TypeScript estricto, capas
-route → controller → service → repository, JWT en cookie `HttpOnly`, soft delete y movimientos
-de stock transaccionales.
+API REST modular de inventario y auditoría con trazabilidad por usuario. Backend tipo
+estricto con TypeScript, arquitectura en capas y segura por defecto.
+
+## Sobre este proyecto
+
+**Arquitectura en capas**: Seguimos el patrón `route → middleware → controller → service → repository → Prisma`.
+Esto significa que:
+- **Controllers** solo traducen peticiones HTTP a llamadas de servicio
+- **Services** contienen la lógica de negocio y transacciones (ej. `movementService` actualiza stock y crea `StockMovement` en una sola transacción)
+- **Repositories** son el único punto de acceso a la base de datos, con filtros como `deletedAt: null`
+- **Routes** definen endpoints + middlewares + anotaciones Swagger, sin lógica de negocio
+
+**Seguridad por defecto**:
+- Autenticación con JWT en cookie `HttpOnly` (nunca en body/headers)
+- Contraseñas siempre hash con bcrypt cost 10, nunca texto plano en logs o respuestas
+- Validación estricta de entrada con Zod en todas las rutas
+- Rate limiting global y headers de seguridad con Helmet
+- Roles RBAC (EMPLOYEE/ADMIN) validados del token JWT
+- Nunca se loguean contraseñas, tokens ni secretos
+
+**Testing completo**:
+- 49 tests unitarios e integración que cubren auth, productos y movimientos de stock
+- Tests aislados con `DATABASE_URL_TEST` no afectan tus datos de desarrollo
+- `npm run test` verifica todo antes de deploy
+
+**Documentación interactiva**:
+- OpenAPI servida en `/api-docs` mediante `swagger-jsdoc`
+- Cada endpoint documenta resumen, auth requerida, body/params y códigos de error posibles
 
 ## Stack
 
 - Node.js 20.19+ (probado en 24) · Express 5 · TypeScript 5.9 (`strict`)
-- Prisma ORM 7 (`prisma-client`, salida CommonJS) + PostgreSQL
-- Zod 4 (validacion y tipos inferidos)
+- Prisma ORM 7 (`prisma-client`, salida CommonJS) + PostgreSQL (o SQLite via `DATABASE_PROVIDER`)
+- Zod 4 (validación y tipos inferidos)
 - bcrypt · jsonwebtoken · helmet · cors · express-rate-limit · cookie-parser
 - Jest 30 + ts-jest + Supertest
 - ESLint 10 (flat config) + Prettier 3
@@ -52,7 +77,7 @@ npm run dev
 | `CORS_ORIGIN` | Origen permitido con credenciales | `http://localhost:3000` |
 | `BCRYPT_ROUNDS` | Coste de bcrypt (10–12) | `10` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Solo para `prisma:seed` | — |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciales del contenedor `db` de Compose | `postgres` / `postgres` / `stock_manager` |`}]
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciales del contenedor `db` de Compose | `postgres` / `postgres` / `stock_manager` |`]
 
 `DATABASE_URL` es una sola cadena (lo que consumen Prisma y el driver `pg`). Las credenciales del
 contenedor son variables aparte porque Postgres las necesita al inicializarse; Compose construye el
@@ -110,6 +135,44 @@ El proyecto está diseñado para ser agnóstico al gestor de bases de datos. Pue
 Respuestas: `{ "data": ... }` en exito (los listados añaden `meta` con `page`, `limit`, `total` y `totalPages`); `{ "error": { "code", "message", "details?" } }` en error.
 
 ## Estructura
+
+```text
+src/
+├── @types/          augmentations de Express (req.user)
+├── config/          env validado, Prisma + adapter, Swagger
+├── controllers/     traduccion HTTP
+├── services/        reglas de negocio y transacciones
+├── repositories/    unico acceso a Prisma
+├── routes/          endpoints + anotaciones OpenAPI
+├── middlewares/     auth, roles, validacion, errores
+├── schemas/         Zod + tipos inferidos
+├── errors/          AppError tipado
+├── generated/       cliente de Prisma (no versionado)
+├── app.ts           Express sin listen
+└── server.ts        arranque y cierre ordenado
+```
+
+Reglas detalladas para humanos y agentes: `AGENTS.md` y `docs/context/`.
+
+## Tests
+
+```bash
+npm test
+```
+
+- **Unit**: servicios con repositorios mockeados (`tests/unit`).
+- **Integracion**: Supertest contra la app y PostgreSQL real (`tests/integration`).
+
+La suite usa `DATABASE_URL_TEST`: `globalSetup` crea la base si no existe, aplica
+`prisma migrate deploy` y la trunca antes de empezar. No toca `DATABASE_URL`, asi que tus datos de
+desarrollo quedan intactos.
+
+## CI
+
+`.github/workflows/ci.yml` ejecuta en cada push a `main` y en cada pull request:
+`npm ci`, `typecheck`, `lint`, `format:check`, `test` contra un servicio PostgreSQL 15 y `build`.
+Un segundo job construye la imagen de producción, lo que valida el `Dockerfile` sin levantar el stack.
+
 
 ```text
 src/
