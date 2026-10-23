@@ -19,8 +19,7 @@
     "test:cov": "jest --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev && prisma generate",
-    "prisma:seed": "prisma db seed",
-    "postinstall": "prisma generate"
+    "prisma:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",
