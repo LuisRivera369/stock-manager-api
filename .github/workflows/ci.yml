@@ -58,14 +58,6 @@ jobs:
       - name: Formato
         run: npm run format:check
 
-      - name: Wait for PostgreSQL
-        uses: jwilder/wait-for-it-action@v1
-        with:
-          host: localhost
-          port: 5432
-          timeout: 60s
-          attempts: 10
-
       - name: Tests
         run: npm test
 
