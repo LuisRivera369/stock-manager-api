@@ -37,7 +37,7 @@ describe("Prisma 7 con moduleFormat cjs", () => {
 
     expect(found).toHaveLength(1);
     expect(found[0]?.id).toBe(created.id);
-    expect(found[0]?.price.toNumber()).toBe(49.9);
+    expect(found[0]?.price).toBe(49.9);
   });
 
   it("cambia el stock y registra el movimiento en una transaccion", async () => {

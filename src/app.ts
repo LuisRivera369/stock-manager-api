@@ -34,6 +34,10 @@ export function createApp(): Express {
   app.use(cookieParser());
   app.use(globalLimiter);
 
+  app.get("/", (_req, res) => {
+  res.redirect(302, "/api-docs");
+});
+
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
   });

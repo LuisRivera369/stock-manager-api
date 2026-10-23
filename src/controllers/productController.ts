@@ -13,7 +13,14 @@ type ProductResponse = Omit<Product, "price"> & { price: number };
 
 /** El Decimal de Prisma no debe filtrarse al JSON: la API expone numero (D-03). */
 function presentProduct(product: Product): ProductResponse {
-  return { ...product, price: product.price.toNumber() };
+  // Prisma Decimal has toNumber(), plain number does not
+  let price: number;
+  if (typeof (product.price as any).toNumber === "function") {
+    price = (product.price as any).toNumber();
+  } else {
+    price = product.price;
+  }
+  return { ...product, price };
 }
 
 export async function list(req: Request, res: Response): Promise<void> {

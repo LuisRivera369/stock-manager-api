@@ -1,4 +1,3 @@
-import { Prisma } from "../../src/generated/prisma/client";
 import * as movementRepository from "../../src/repositories/movementRepository";
 import * as productRepository from "../../src/repositories/productRepository";
 import * as movementService from "../../src/services/movementService";
@@ -18,7 +17,7 @@ function buildProduct(stock: number) {
     name: "Teclado",
     sku: "TECLADO-1",
     description: null,
-    price: new Prisma.Decimal("10.00"),
+    price: 10.00,
     stock,
     deletedAt: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),

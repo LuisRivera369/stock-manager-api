@@ -6,8 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
+
+
+
+
 
 enum Role {
   ADMIN
@@ -35,7 +39,7 @@ model Product {
   name        String
   sku         String          @unique
   description String?
-  price       Decimal        @db.Decimal(10, 2)
+  price       Float
   stock       Int             @default(0)
   deletedAt   DateTime?
   createdAt   DateTime        @default(now())

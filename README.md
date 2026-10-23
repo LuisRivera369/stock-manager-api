@@ -52,7 +52,7 @@ npm run dev
 | `CORS_ORIGIN` | Origen permitido con credenciales | `http://localhost:3000` |
 | `BCRYPT_ROUNDS` | Coste de bcrypt (10–12) | `10` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Solo para `prisma:seed` | — |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciales del contenedor `db` de Compose | `postgres` / `postgres` / `stock_manager` |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciales del contenedor `db` de Compose | `postgres` / `postgres` / `stock_manager` |`}]
 
 `DATABASE_URL` es una sola cadena (lo que consumen Prisma y el driver `pg`). Las credenciales del
 contenedor son variables aparte porque Postgres las necesita al inicializarse; Compose construye el
@@ -71,6 +71,26 @@ contenedor son variables aparte porque Postgres las necesita al inicializarse; C
 | `npm run prisma:generate` | Regenera el cliente (v7 no lo hace solo) |
 | `npm run prisma:migrate` | `migrate dev` + `generate` |
 | `npm run prisma:seed` | `prisma db seed` |
+
+## Motor de base de datos
+
+El proyecto está diseñado para ser agnóstico al gestor de bases de datos. Puedes cambiar entre SQLite y PostgreSQL mediante la variable de entorno `DATABASE_PROVIDER`:
+
+| Valor | Motor | DATABASE_URL ejemplo |
+| :--- | :--- | :--- |
+| `postgresql` | PostgreSQL | `postgresql://user:pass@host:5432/db` |
+| `sqlite` | SQLite | `file:./dev.db` |
+
+### Cómo cambiar de base de datos
+1. Modifica `.env` (o crea una variante distinta)
+2. Cambia `DATABASE_PROVIDER` a `sqlite` o `postgresql`
+3. Ajusta `DATABASE_URL` al formato del motor elegido
+4. Reinicia el servidor (`npm run dev`)
+
+### Nota importante
+- **SQLite**: El archivo de base de datos se crea automáticamente en la ruta indicada por `DATABASE_URL`
+- **PostgreSQL**: Asegúrate de que la base de datos existe antes de iniciar
+- Cambiar de motor requiere **reiniciar la aplicación** (la variable se lee al arranque)
 
 ## Endpoints
 
