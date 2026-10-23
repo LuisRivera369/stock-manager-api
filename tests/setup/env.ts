@@ -3,38 +3,62 @@ import "path";
 import * as fs from "fs";
 import * as path from "path";
 
-// CONFIGURATION PRIORITY:
-// 1. Variables de entorno del workflow (ej. GitHub Actions setea DATABASE_URL_TEST con PostgreSQL)
-// 2 .env.test solo se usa si NO hay variables de entorno (para desarrollo local con SQLite)
+// CONFIGURATION PRIORITY (highest to lowest):
+// 1. Variables de entorno del workflow (GitHub Actions, CI)
+// 2. Variables de entorno del sistema
+// 3. .env.test (solo para desarrollo local con SQLite)
+// 4. .env (fallback general)
 
-// Proteger las variables ya establecidas (ej. desde GitHub Actions) - NO sobrescribirlas
-const protectEnvVar = (key: string) => {
-  // Si ya está definida (por ejemplo, GitHub Actions), no la toques
+// Function to get env var with priority chain
+function getEnvVar(key: string, fallback?: string): string | undefined {
+  // 1. First check if already set (workflow CI like GitHub Actions)
   if (process.env[key]) {
-    return;
+    return process.env[key];
   }
-  // Solo establecer si no existe (para desarrollo local)
-  const envPath = path.resolve(".env.test");
-  if (fs.existsSync(envPath)) {
-    const testEnvContent = fs.readFileSync(envPath, "utf-8");
+
+  // 2. Check .env.test (for local development with SQLite)
+  const envTestPath = path.resolve(".env.test");
+  if (fs.existsSync(envTestPath)) {
+    const testEnvContent = fs.readFileSync(envTestPath, "utf-8");
     const match = testEnvContent.match(new RegExp(`^${key}=(.+)$`, "m"));
     if (match?.[1]) {
-      process.env[key] = match[1].trim();
+      return match[1].trim();
     }
   }
-};
 
-protectEnvVar("DATABASE_URL_TEST");
-protectEnvVar("DATABASE_PROVIDER");
+  // 3. Check .env (general fallback)
+  const envPath = path.resolve(".env");
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, "utf-8");
+    const match = envContent.match(new RegExp(`^${key}=(.+)$`, "m"));
+    if (match?.[1]) {
+      return match[1].trim();
+    }
+  }
+
+  // 4. Return fallback if provided
+  return fallback;
+}
+
+// Get DATABASE_URL_TEST with priority chain
+const dbTestUrl = getEnvVar("DATABASE_URL_TEST");
+
+if (!dbTestUrl) {
+  throw new Error(
+    "DATABASE_URL_TEST es obligatoria para ejecutar los tests.\n" +
+      "Expected: postgresql://... (from workflow) or file:./test.db (from .env.test)",
+  );
+}
+
+process.env.DATABASE_URL_TEST = dbTestUrl; // Ensure it's set
 
 const testDatabaseUrl = process.env.DATABASE_URL_TEST;
 
-if (!testDatabaseUrl) {
-  throw new Error("DATABASE_URL_TEST es obligatoria para ejecutar los tests");
+// DATABASE_URL: use TEST URL only if it's NOT from PostgreSQL (i.e., it's SQLite)
+// If it starts with postgresql, it's from the workflow - respect it as-is
+if (testDatabaseUrl && !testDatabaseUrl.startsWith("postgresql")) {
+  // Es SQLite desde .env.test - usarla para DATABASE_URL principal
+  process.env.DATABASE_URL = testDatabaseUrl;
+  // Note: No cambiemos DATABASE_URL_TEST, se usa tal cual para la conexión de tests
 }
-
-// Usar la URL de TEST para DATABASE_URL principal solo si viene de .env.test
-// Si ya vino del workflow (GitHub Actions), respétala tal cual
-if (process.env.DATABASE_URL_TEST && !process.env.DATABASE_URL_TEST.startsWith("postgresql")) {
-  process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
-}
+// Si ya es postgresql (del workflow), no toquemos nada - ya está configurado correctamente
